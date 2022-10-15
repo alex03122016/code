@@ -1,137 +1,106 @@
-#idea: get nouns from a given text, make list with these nouns and their
-#defined and undefined article, color them depending on gender
+
+import cairo
 
 
+with cairo.SVGSurface("Zahlenstrahl.svg", 800, 800) as surface:
+	context = cairo.Context(surface)
+	leftBorder, y, rightBorder, y1 = 0.1, 1.0, 1.9, 1.0
+	x2, y2, x3, y3 = 0.6, 0.1, 0.9, 0.5
+	context.scale(400, 400)
+	context.set_line_width(0.01)
+	context.move_to(leftBorder, y)
+	#schritt= 0.015
+	number = 0
+	context.set_line_width(0.005)
+	import random
+	#schritt= random.randint(15,90)/1000
+	"zwischen startpunkt und endpunkt die länge = Differenz von Startzahl und Endzahl * schritt"
+	"schritt = zwischen startpunkt und endpunkt die länge / Differenz von Startzahl und Endzahl "
+	"schritt = (rightBorder-x)) / Differenz von Startzahl und Endzahl "
+	zahlenraum = 100 # 5, 10, 100,1000, Benutzerdefiniert
+	startNumber = random.randrange(0,zahlenraum-20,10)
+	print("startNumber", startNumber)
+	end = random.randrange(startNumber+10, zahlenraum, 10)
+	print("end", end)
+	print("differnce", end - startNumber)
+	schritt = (rightBorder-leftBorder)/(end - startNumber)
+	laenge= 0.05 # length of big line
 
-def prepare_search(inputtext, language):
-	import spacy #code: pip install spacy
-	try:
-		import languageload
-	except ImportError:
-		from learny import languageload
+	#draw horizontal line
+	context.line_to(rightBorder, y1)
 
-	# variables and lists used
-	noun_list = [] # list of nouns that will be part of the cloze
+	context.stroke()
 
-	nlp = languageload.language_load(language)
-	docnlp = nlp(inputtext) #load to spacy
+	#draw vertical line
+	for number in range(startNumber,end+1):
+		print('leftBorder:', leftBorder)
+		context.move_to(leftBorder, y)
 
-	for token in docnlp:
-		if 'NOUN' in token.pos_:
-			noun_list.append(str(token.lemma_))# complete list of nouns
-	return noun_list
-
-def get_categories(searchquery="", resultDict={}):
-
-	import wptools
-	#https://github.com/siznax/wptools/wiki/Examples#get-a-representative-image
-	import requests
-	import os
-	import spacy #code: pip install spacy
-	try:
-		import languageload
-	except ImportError:
-		from learny import languageload
-	nlp = languageload.language_load(language="")
-
-	#https://github.com/siznax/wptools/wiki/Examples#get-wikidata
-	page = wptools.page(searchquery, lang="de")
-	number = page.get_wikidata()
-	givenid = page.data['wikibase']
-	print("id:", givenid)
-
-
-	#https://towardsdatascience.com/where-do-mayors-come-from-querying-wikidata-with-python-and-sparql-91f3c0af22e2
-	url = 'https://query.wikidata.org/sparql'
-	query = f"""
-	SELECT ?item ?itemLabel
-	WHERE
-	{{
-	  wd:{givenid} wdt:P279/wdt:P31* ?item.
-	  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de". }}
-	}}
-
-	"""
-	file_path  = os.path.join(os.path.expanduser('~'),'learny', 'learny', 'learny', 'b1.txt')
-
-	with open(file_path) as f:
-	  grundwortschatz = f.readlines()
-	resultDict[searchquery] = []
-	grundwortschatz = " ".join(grundwortschatz)
-	#https://www.datacamp.com/community/tutorials/f-string-formatting-in-python
-	r = requests.get(url, params = {'format': 'json', 'query': query})
-	data = r.json()
-	for i in range(len(data["results"]["bindings"])):
-		value = data["results"]["bindings"][i]["itemLabel"]["value"]
-		"""
-		if "Meta" in value or value == "":
-			print("something with meta")
+		if number%10==0:
+			#ctx.show_text(str(number))
+			context.line_to(leftBorder, y-(laenge+0.05))
+			print("print big line", number)
 		else:
-			print("data: ", value)
-			resultDict[searchquery].append(value)
-			print(resultDict)
-		"""
-		value.strip(" ")
-		if value in grundwortschatz and value != "":
-			print("data: ", value)
-			resultDict[searchquery].append(value)
-			print(resultDict)
-		else:
-			print(value, "not in grundwortschatz")
-			valuelist = value.split(" ")
-			wordexists = False
+			context.line_to(leftBorder, y-laenge)
+		context.stroke()
+		number = number +1
+		leftBorder = leftBorder+ schritt
 
-			for word in valuelist:
-				docnlp = nlp(word) #load to spacy
-				print(docnlp)
-				for token in docnlp:
-					word = str(token.lemma_)
-					print(word, "word lemma????????????????????????????????????")
-				if word in grundwortschatz and word != "":
-					print(word, "exists")
-					wordexists = True
-				else:
-					wordexists = False
-					#insert charsplit?
-					print(word, "doesn't exist")
-					break
-			if wordexists == True:
-				resultDict[searchquery].append(value)
-				print(resultDict)
+		#if (x-0.5)>=rightBorder:
+		#	print("x bigger than endpoint", x)
+		#	break
 
 
 
+#draw numbers
+	WIDTH = 3
+	HEIGHT = 2
+	PIXEL_SCALE = 400
 
-	return resultDict
+	ctx = cairo.Context(surface)
+	ctx.set_source_rgb(0, 0, 0)
+	ctx.set_font_size(0.10)
+	ctx.select_font_face("Arial",
+	                     cairo.FONT_SLANT_NORMAL,
+	                     cairo.FONT_WEIGHT_NORMAL)
+	ctx = cairo.Context(surface)
+	ctx.scale(PIXEL_SCALE, PIXEL_SCALE)
 
-input= """
+	ctx.set_source_rgb(0, 0, 0)
+	ctx.set_font_size(0.08)
+	ctx.select_font_face("Arial",
+	             cairo.FONT_SLANT_NORMAL,
+	             cairo.FONT_WEIGHT_NORMAL)
 
-Pascal sitzt im Bus in der zweitletzten Reihe .
- Ein großer Junge mit einer Wasserflasche
- setzt sich hinter ihn , nimmt einen Schluck
- Wasser aus der Flasche und spuckt es ihm auf
- den Kopf . Haare und Klamotten sind nass .
+	leftBorder,y = 0.1, 0.85
+	number= 0
+	schrittweite= 10
 
- Der 14-jährige Kevin sitzt im Rollstuhl . Jeden
- Morgen wartet er auf das Taxi und wird von
- einigen Jugendlichen gemobbt . Sie stellen sich
- in den Weg , sodass er auf dem Bürgersteig
- nicht mehr weiter kann . „ Hast du ein Problem ? ” ,
- fragt ihn einer . Die anderen lachen .
+	for number in range(startNumber, 100):
+		if leftBorder-0.1>=rightBorder:
+			break
+		ctx.move_to(leftBorder, y)
+		leftBorder = leftBorder + schritt
+		if number%schrittweite==0:
+			ctx.show_text(str(number))
 
-"""
+	allsearchedNumbers = []
+	for n in range (0,4):
+		allsearchedNumbers.append(random.randint(startNumber, end))
+	allsearchedNumbers.sort()
 
-list = prepare_search(input, language="")
-print(list)
+	def createRectangle(searchedNumber, startNumber, schritt):
+		#Creating rectangle
+		leftBorder = 0.1
+		pos = leftBorder+ ((searchedNumber - startNumber) * schritt)
+		print("pos:", pos, searchedNumber)
+		xlength= 0.2
 
-for word in list:
-	try:
-			resultDict = get_categories(word)
-	except:
-			print(f"Error!! Couldn't get result category searching with: {word}")
-			continue
-#get_categories("Ritter")
-for key in resultDict:
-	if resultDict[key] != []:
-		print(key,": ")
-		print(", ".join(resultDict[key]))
+		context.rectangle(pos, 0.6, xlength, 0.1)#(x pos of upper left corner, y position of upper left corner, x length, y length)
+		context.stroke()
+		ctx.move_to(pos+0.05, 0.6+0.075)
+		ctx.show_text(str(searchedNumber))
+		return
+
+	for n in allsearchedNumbers:
+		createRectangle(n, startNumber, schritt)
